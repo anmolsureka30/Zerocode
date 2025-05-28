@@ -16,7 +16,7 @@ const app = express();
 // Add CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://wdtafg.vercel.app', 'https://wdtafg-git-main-veeradi34.vercel.app'] // Add your frontend URLs here
+    ? ['https://ebfiwb.vercel.app', 'https://wdtafg.vercel.app', 'https://wdtafg-git-main-veeradi34.vercel.app'] // Add your frontend URLs here
     : '*', // Allow all origins for development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
