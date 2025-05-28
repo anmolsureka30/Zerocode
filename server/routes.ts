@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { insertProjectSchema } from "./shared/schema.js";
@@ -16,6 +16,7 @@ import authRouter, { authenticateToken } from "./lib/authRoutes.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { type FileNode } from "./shared/schema.js";
 
 // Polyfill for __dirname and __filename in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -118,6 +119,17 @@ function validateGeneratedCodeFlexible(structure: any): {
     isValid: errors.length === 0, // Only errors fail validation, warnings are OK
     errors,
     warnings
+  };
+}
+
+interface DebugLogEntry {
+  attempt: number;
+  errors: any;
+  result: {
+    success: boolean;
+    files?: FileNode[];
+    error?: string | null;
+    debugInfo?: any;
   };
 }
 
@@ -528,22 +540,16 @@ app.post("/api/waitlist", async (req: Request, res: Response) => {
   // Error fixing endpoint - uses updated error fix agent
   app.post("/api/fix-errors", async (req: Request, res: Response) => {
     try {
-      const { errors, files, framework = "React", livePreviewError, multiStep = false, maxFixAttempts = 7, aiProvider = 'openai' } = req.body;
-      
-      if (!files || !Array.isArray(files)) {
-        return res.status(400).json({ error: "files array is required" });
-      }
+      const { errors, files, framework, livePreviewError, aiProvider, iterative } = req.body;
 
-      console.log('🔧 Fixing errors with enhanced agent using', aiProvider);
-
-      // Multi-step fix loop if requested
-      if (multiStep) {
+      if (iterative) {
         let currentErrors = errors || [];
-        let currentFiles: any[] = files;
+        let currentFiles = files;
         let attempt = 0;
-        let debugLog = [];
-        let lastResult = null;
-        while (attempt < maxFixAttempts && currentErrors.length > 0) {
+        const maxAttempts = 3;
+        const debugLog: DebugLogEntry[] = [];
+
+        while (attempt < maxAttempts) {
           const result = await fixAppErrors(
             currentErrors,
             currentFiles,

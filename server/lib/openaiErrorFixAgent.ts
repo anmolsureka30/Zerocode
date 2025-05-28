@@ -42,7 +42,7 @@ function mapErrorsToFiles(errors: string[], files: FileNode[]): { [filePath: str
       const file = files.find(f => f.path === filePath || f.name === filePath);
       if (file) {
         // Try to extract line number if present
-        let errorLine = null;
+        let errorLine: number | undefined = undefined;
         if (fileMatch[3]) {
           const lineCol = fileMatch[3].split(":");
           errorLine = parseInt(lineCol[1], 10);
