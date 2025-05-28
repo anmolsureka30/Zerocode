@@ -24,13 +24,21 @@ export const users = pgTable("users", {
 });
 
 // Project schemas
-export const insertProjectSchema = createInsertSchema(projects).omit({
-  id: true,
+export const insertProjectSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  framework: z.string(),
+  styling: z.string(),
+  stateManagement: z.string(),
+  buildTool: z.string(),
+  prompt: z.string(),
+  files: z.any(),
+  createdAt: z.string(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = z.object({
+  username: z.string(),
+  password: z.string(),
 });
 
 // Types
@@ -41,7 +49,7 @@ export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
 // Define the file structure type
-export const fileSchema: z.ZodType<any> = z.object({
+export const fileSchema: z.ZodType = z.object({
   name: z.string(),
   path: z.string(),
   content: z.string().optional(),
