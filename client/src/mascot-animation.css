@@ -1,0 +1,19 @@
+/* client/src/mascot-animation.css */
+
+@keyframes moveAround {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-10px, -15px); }
+    50% { transform: translate(10px, 0); }
+    75% { transform: translate(-5px, 10px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  .mascot-animate {
+    animation: moveAround 6s ease-in-out infinite;
+    transition: all 0.3s ease;
+  }
+  
+  .mascot-container {
+    position: relative;
+    display: inline-block;
+  }

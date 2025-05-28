@@ -1,0 +1,64 @@
+You are an expert {{framework}} developer and software engineer. Your job is to generate the complete, production-quality code for the following file as part of a modular, scalable, and beautiful web application.
+
+App Description:
+{{refinedPrompt}}
+
+Design/UX Notes:
+{{design_notes}}
+
+File to generate: {{path}}
+File details: {{info}}
+
+**Requirements:**
+- Use {{styling}} (e.g., Tailwind CSS) for all UI. Ensure the design is modern, responsive, and accessible.
+- Use TypeScript for all code (unless otherwise specified).
+- Use atomic/component-based design: keep components small, focused, and reusable.
+- Use shadcn/ui components where possible for UI consistency and accessibility.
+- Add clear, maintainable comments for complex logic and non-obvious design decisions.
+- Ensure modularity, separation of concerns, and best practices throughout.
+- For React files, use functional components and hooks. Prefer composition over inheritance.
+- For state, use {{stateManagement}} and follow idiomatic patterns.
+- For error handling, use error boundaries and toast notifications for user feedback.
+- All imports must be correct and relative to the file structure.
+- If this file references any component (e.g., <Sidebar />, <Header />, etc.), ensure that a corresponding file is generated for that component as well. Do NOT reference any component that is not defined in the generated files. Every referenced component must have its own file generated in this app.
+- If this is a style or config file, ensure it is complete and ready to use.
+- If this is a backend file, ensure proper routing, error handling, and modularity.
+- Only output the code for this file, no explanations, markdown, or extra text.
+- The code must be ready to use in a modern, production-grade application and work in a browser sandbox/iframe.
+
+**Best Practices:**
+- Use semantic HTML and ARIA attributes for accessibility.
+- Use Tailwind utility classes for layout, spacing, color, and responsiveness.
+- Use shadcn/ui for buttons, dialogs, forms, and other UI primitives.
+- Add prop types and interfaces for all components.
+- Add error handling and user feedback (toasts, error boundaries) where appropriate.
+- Ensure all assets (images, icons, etc.) are referenced or inlined as needed.
+- Add a default export for every component file.
+- Avoid prop drilling; use context or hooks for shared state.
+- Add a README.md file with setup instructions if this is the root or main file.
+
+**Example (for a Button component):**
+```tsx
+import { Button as ShadcnButton } from "@/components/ui/button";
+
+interface MyButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+const MyButton: React.FC<MyButtonProps> = ({ children, onClick }) => (
+  <ShadcnButton onClick={onClick} className="w-full py-2 px-4 rounded bg-primary text-white hover:bg-primary/90 transition">
+    {children}
+  </ShadcnButton>
+);
+
+export default MyButton;
+```
+
+**IMPORTANT:**
+- Only output the code for this file, no explanations, markdown, or extra text.
+- Ensure the code is valid, complete, and ready to use in a modern, production-grade application.
+- Be as detailed, high quality, and creative as possible. The generated code must enable a perfect live preview and user experience.
+- If you return multiple adjacent JSX elements, always wrap them in a single parent element (e.g., a fragment <>...</> or a <div>).
+- If you define multiple <Route /> elements inside <Routes>, wrap them in a fragment.
+- Never return multiple sibling JSX elements without a parent. 

@@ -1,0 +1,23 @@
+/* Add to client/src/styles/index.css */
+
+@keyframes float {
+    0% {
+      transform: translateY(0px) translateX(0px);
+    }
+    25% {
+      transform: translateY(-10px) translateX(5px);
+    }
+    50% {
+      transform: translateY(0px) translateX(-5px);
+    }
+    75% {
+      transform: translateY(10px) translateX(5px);
+    }
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }

@@ -1,0 +1,188 @@
+/* CodeEditor.css */
+
+/* Import modern programming fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+
+/* Code editor container */
+.code-editor-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Fira Code', monospace;
+}
+
+/* Code editor header styling */
+.code-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #171923;
+  color: #e2e8f0;
+}
+
+/* Window control dots */
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+}
+
+.window-control {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.window-control-close {
+  background-color: #ff5f57;
+}
+
+.window-control-minimize {
+  background-color: #febc2e;
+}
+
+.window-control-maximize {
+  background-color: #28c840;
+}
+
+/* File tab styling */
+.file-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background-color: #1a202c;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #a0aec0;
+}
+
+.file-tab .file-icon {
+  margin-right: 6px;
+  opacity: 0.7;
+}
+
+/* Main code content container */
+.code-content {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  background-color: #0f1117;
+  color: #e2e8f0;
+}
+
+/* Line numbers column */
+.line-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 12px 8px;
+  min-width: 40px;
+  background-color: #171923;
+  user-select: none;
+  border-right: 1px solid #2d3748;
+}
+
+.line-number {
+  font-size: 12px;
+  height: 20px;
+  color: #4a5568;
+}
+
+/* Code display area */
+.code-display {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 20px;
+  overflow-x: auto;
+}
+
+/* Basic styles for syntax elements */
+.token {
+  font-family: 'Fira Code', monospace;
+}
+
+.token.comment {
+  color: #718096;
+  font-style: italic;
+}
+
+.token.keyword {
+  color: #805ad5; /* purple */
+}
+
+.token.operator {
+  color: #d69e2e; /* yellow */
+}
+
+.token.function {
+  color: #3182ce; /* blue */
+}
+
+.token.string {
+  color: #38a169; /* green */
+}
+
+.token.number {
+  color: #dd6b20; /* orange */
+}
+
+.token.tag {
+  color: #e53e3e; /* red */
+}
+
+.token.property, .token.attr-name {
+  color: #319795; /* teal */
+}
+
+.token.punctuation {
+  color: #a0aec0;
+}
+
+.token.class-name, .token.component {
+  color: #d69e2e; /* yellow */
+  font-weight: 500;
+}
+
+.token.attr-value {
+  color: #38a169; /* green */
+}
+
+/* Avoid text selection background clashing with syntax highlighting */
+::selection {
+  background-color: rgba(45, 55, 72, 0.8);
+  color: inherit;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #171923;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d3748;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a5568;
+}
+
+/* Indent guide lines for easier code reading */
+.line {
+  position: relative;
+}
+
+/* Make sure text within code is properly spaced */
+code, pre {
+  tab-size: 2;
+}

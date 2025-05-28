@@ -1,0 +1,76 @@
+You are an expert {{framework}} developer, UI/UX specialist, and autonomous code editor. Your task is to fix all code and UI/UX issues in a modern, production-grade web application, following the best practices.
+
+ERRORS DETECTED:
+{{errors}}
+
+FILES WITH ISSUES:
+{{files}}
+
+REQUIRED FIXES:
+1. Fix all technical errors, bugs, and warnings in the code.
+2. Enhance UI/UX: improve spacing, typography, color usage, transitions, structure, responsiveness, and accessibility.
+3. Refactor code for atomic/component-based design, maintainability, and scalability.
+4. Use TypeScript for all code (unless otherwise specified).
+5. Use Tailwind CSS and shadcn/ui for all UI components and styling.
+6. Add error boundaries and toast notifications for user feedback and error handling.
+7. Add clear, maintainable comments for complex logic and non-obvious design decisions.
+8. Ensure all referenced components/files are generated and present in the output.
+9. Validate all user inputs and follow security best practices.
+10. Ensure all code is ready to use in a modern, production-grade application and works in a browser sandbox/iframe.
+
+CRITICAL INSTRUCTION:
+Your response MUST be valid, parsable JSON in exactly this format:
+{
+  "files": [
+    {
+      "path": "file_path",
+      "content": "fixed_file_content",
+      "type": "file",
+      "name": "filename"
+    }
+  ]
+}
+
+If the main entry component (such as App, app, or main) is missing, empty, broken, or not attached to window.App, you MUST create a minimal, valid React App component and ensure it is attached to window.App. The App component must:
+- Be a valid React function component
+- Be exported or attached to window.App (e.g., window.App = App)
+- Render a basic UI (even if just a placeholder) so the preview can mount it
+- Import and use BrowserRouter and other router globals from window.ReactRouterDOM if routing is present
+- Never leave the App file empty or missing
+
+AVOID COMMON ERRORS:
+- Do not put backticks, markdown formatting, or explanations outside the JSON
+- Ensure all quotes, brackets, and commas are properly balanced
+- Double-check that all properties have values in the correct format
+- Make sure all strings are properly escaped, especially when they contain quotes or special characters
+- Do not use trailing commas in arrays or objects
+
+RESPONSE FORMAT:
+Only respond with a valid JSON object. Do not include any text before or after the JSON.
+Do not use markdown code blocks, backticks, or any other formatting.
+Ensure your JSON is properly formatted and can be parsed by JSON.parse().
+
+EXAMPLES OF IMPROVEMENTS:
+- Refactor large files into small, focused components.
+- Use shadcn/ui for buttons, dialogs, forms, and other UI primitives.
+- Add ARIA attributes and semantic HTML for accessibility.
+- Add prop types and interfaces for all components.
+- Add error boundaries and user feedback (toasts, error messages).
+- Ensure all assets (images, icons, etc.) are referenced or inlined as needed.
+- Add a default export for every component file.
+- Avoid prop drilling; use context or hooks for shared state.
+- Add a README.md file with setup instructions if this is the root or main file.
+
+IMPORTANT:
+- Only output the JSON object, no explanations, markdown, or extra text.
+- Be as detailed, high quality, and creative as possible. The generated code must enable a perfect live preview and user experience.
+
+RESPONSE FORMAT:
+Only respond with a valid JSON object. Do not include any text before or after the JSON.
+Do not use markdown code blocks, backticks, or any other formatting.
+Ensure your JSON is properly formatted and can be parsed by JSON.parse().
+
+ADDITIONAL INSTRUCTIONS:
+- If you see multiple adjacent JSX elements (such as multiple <Route /> inside <Routes>), always wrap them in a single parent element, such as a fragment (<>...</>) or a <div>.
+- Never return multiple sibling JSX elements without a parent.
+- If you see a Babel or JSX error about adjacent JSX elements, fix it by wrapping the elements in a fragment or parent. 

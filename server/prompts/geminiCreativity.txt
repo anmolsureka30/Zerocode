@@ -1,0 +1,27 @@
+Analyze the following code for creativity and innovation.
+
+CODE FILES FOR ANALYSIS:
+{{files}}
+
+Provide a detailed assessment of the code's creativity based on these criteria:
+1. Novelty: How original and unique are the approaches and patterns used?
+2. Usefulness: How practical and functional is the implementation for solving the intended problem?
+3. Elegance: How well-organized, efficient, and aesthetically pleasing is the code?
+4. Robustness: How well does it handle edge cases and potential issues?
+
+For each criterion, provide a score from 0-100 and a brief explanation.
+
+Your response MUST be valid JSON in this exact format:
+{
+  "score": number,         // Overall creativity score (0-100)
+  "novelty": number,       // Novelty score (0-100)
+  "usefulness": number,    // Usefulness score (0-100)
+  "elegance": number,      // Elegance score (0-100)
+  "robustness": number,    // Robustness score (0-100)
+  "description": "string"  // Brief overall assessment
+}
+
+IMPORTANT:
+- Only return valid JSON. No markdown, no explanations, no text before or after.
+- Ensure all quotes, brackets, and commas are correct.
+- Be as detailed and specific as possible to help the creativity analysis agent produce the best results. 

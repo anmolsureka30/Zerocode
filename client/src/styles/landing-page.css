@@ -1,0 +1,136 @@
+/* client/src/styles/landing-page.css */
+
+/* Animation for the mascot */
+.animate-bounce-slow {
+    animation: bounce 3s infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+  
+  /* Hover effects for cards */
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Hero section */
+  .hero-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .landing-hero h1 {
+      font-size: 2rem;
+    }
+    
+    .landing-hero .button-group {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .landing-hero .button-group button {
+      margin-bottom: 1rem;
+    }
+  }
+  
+  /* Feature card styles */
+  .feature-card {
+    transition: all 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+  }
+  
+  /* Step card styles */
+  .step-card {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .step-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #3b82f6; /* blue-500 */
+    transition: width 0.3s ease;
+  }
+  
+  .step-card:hover::after {
+    width: 100%;
+  }
+  
+  /* Testimonial card styles */
+  .testimonial-card {
+    transition: all 0.3s ease;
+  }
+  
+  .testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6; /* blue-500 */
+  }
+  
+  /* Footer link hover effect */
+  .footer-link {
+    position: relative;
+  }
+  
+  .footer-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: currentColor;
+    transition: width 0.3s ease;
+  }
+  
+  .footer-link:hover::after {
+    width: 100%;
+  }
+  
+  /* Newsletter section */
+  .newsletter-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* blue-500 with opacity */
+  }
+  
+  .newsletter-button {
+    transition: all 0.3s ease;
+  }
+  
+  .newsletter-button:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Partner logo hover animation */
+  .partner-logo {
+    transition: transform 0.3s ease;
+  }
+  
+  .partner-logo:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
