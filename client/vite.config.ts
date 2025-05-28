@@ -15,13 +15,18 @@ export default defineConfig(({ command, mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    define: {
+      // Expose env variables to your client code
+      'process.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
+    },
     // Add a proxy to forward API requests to your backend server (only in development)
     server: {
       proxy: {
         '/api': {
-          target: process.env.VITE_API_URL || 'http://localhost:5001',
+          target: env.VITE_API_URL || 'http://localhost:5001',
           changeOrigin: true,
-          secure: false,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },
     },
