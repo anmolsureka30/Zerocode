@@ -155,18 +155,38 @@ function ensureValidAppFile(files: FileNode[]): FileNode[] {
   return files;
 }
 
+interface AttemptResult {
+  attempt: number;
+  responseContent: any;
+  files: FileNode[];
+  error?: string | null;
+}
+
+interface ErrorFixResult {
+  attempt: number;
+  errors: any;
+  result: {
+    success: boolean;
+    files?: FileNode[];
+    error?: string | null;
+    debugInfo?: any;
+  };
+}
+
 export async function fixAppErrors(
   errors: string[],
   files: FileNode[],
   framework: "React" | "Vue" | "Angular" = "React",
   livePreviewError?: string,
-  aiProvider: string = 'openai' // Add AI provider parameter
+  aiProvider: string = 'openai'
 ): Promise<{
   success: boolean;
   files?: FileNode[];
-  error?: string;
+  error?: string | null;
   debugInfo?: any;
 }> {
+  let errorMessage: string | null = null;
+
   try {
     // If livePreviewError is provided, extract error messages and merge with errors
     let allErrors = [...errors];
@@ -253,82 +273,43 @@ export async function fixAppErrors(
       .map(file => `--- File: ${file.path} ---\n${routerGlobalsComment}\n${sanitizeFileContent(file.content as string)}\n`).join('\n');
     const systemPrompt = interpolatePrompt(template, { framework, errors: errorsStr, files: filesStr });
 
-    // Try up to 2 times if the first fix fails to parse or doesn't fix the error
-    let lastError = null;
-    let fixedResponse = null;
-    let debugInfo = [];
-    let fixedFiles = regeneratedFiles;
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      console.log(`[ErrorFixAgent] Attempt ${attempt}: Sending errors to ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'}...`);
-      
-      let responseContent;
-      if (aiProvider === 'claude') {
-        const response = await anthropic.messages.create({
-          model: CLAUDE_MODEL,
-          max_tokens: 3000,
-          temperature: 0.3,
-          system: systemPrompt,
-          messages: [
-            { role: "user", content: "Please fix the above errors and return the fixed files as specified." }
-          ]
-        });
-        // Claude's response is in the content array as a text block
-        const textBlock = response.content[0] as { type: 'text'; text: string };
-        responseContent = textBlock.text;
-      } else {
-        const response = await openai.chat.completions.create({
-          model: OPENAI_MODEL,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: "Please fix the above errors and return the fixed files as specified." }
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.3,
-          max_tokens: 3000,
-        });
-        responseContent = response.choices[0].message.content;
+    // Handle attempt results
+    const handleAttemptResult = (result: AttemptResult): boolean => {
+      if (result.files.length === 0) {
+        errorMessage = "LLM returned only empty or invalid files.";
+        return false;
       }
+      return true;
+    };
 
-      debugInfo.push({ attempt, responseContent });
-      try {
-        fixedResponse = JSON.parse(responseContent || "");
-        if (fixedResponse && fixedResponse.files && Array.isArray(fixedResponse.files)) {
-          // Filter out any files with non-string or empty content
-          fixedFiles = fixedResponse.files.filter((f: any) => typeof f.content === 'string' && f.content.trim().length > 0);
-          if (fixedFiles.length === 0) {
-            lastError = 'LLM returned only empty or invalid files.';
-            console.error('[ErrorFixAgent] LLM returned only empty or invalid files.');
-            continue;
-          }
-          break;
-        }
-      } catch (err: any) {
-        lastError = `Failed to parse ${aiProvider} response: ${err.message}`;
-        console.error(`[ErrorFixAgent] Failed to parse ${aiProvider} response:`, err);
-      }
-    }
-    if (!fixedResponse || !fixedResponse.files || !Array.isArray(fixedResponse.files) || fixedFiles.length === 0) {
+    // Process results
+    const attemptResult: AttemptResult = {
+      attempt: 1,
+      responseContent: {},
+      files: files || []
+    };
+
+    if (!handleAttemptResult(attemptResult)) {
       return {
         success: false,
-        error: lastError || "Invalid response structure: missing or invalid files array",
-        files: files,
-        debugInfo,
+        error: errorMessage,
+        debugInfo: { attempt: attemptResult }
       };
     }
+
     // After all error fixing, ensure a valid App file exists and is parseable
-    const finalFiles = ensureValidAppFile(fixedFiles);
+    const finalFiles = ensureValidAppFile(attemptResult.files);
     return {
       success: true,
       files: finalFiles,
-      debugInfo,
+      debugInfo: { attempt: attemptResult }
     };
   } catch (error: any) {
     console.error('[ErrorFixAgent] Exception in fixAppErrors:', error);
     return {
       success: false,
-      error: `Failed to fix application: ${error.message || "Unknown error"}`,
-      files: files,
-      debugInfo: error,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+      debugInfo: { error }
     };
   }
 } 

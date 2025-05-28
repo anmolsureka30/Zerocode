@@ -57,7 +57,11 @@ export class MemStorage implements IStorage {
 
   async createProject(insertProject: InsertProject): Promise<Project> {
     const id = this.projectIdCounter++;
-    const project: Project = { ...insertProject, id };
+    const project: Project = { 
+      ...insertProject, 
+      id,
+      files: insertProject.files || {} // Ensure files is always defined
+    };
     this.projects.set(id, project);
     return project;
   }
@@ -68,7 +72,11 @@ export class MemStorage implements IStorage {
       return undefined;
     }
     
-    const updatedProject = { ...project, ...projectData };
+    const updatedProject = { 
+      ...project, 
+      ...projectData,
+      files: projectData.files || project.files // Keep existing files if not provided in update
+    };
     this.projects.set(id, updatedProject);
     return updatedProject;
   }
