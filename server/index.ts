@@ -15,7 +15,7 @@ const app = express();
 
 // Add CORS configuration
 app.use(cors({
-  origin: true, // Allow all origins while maintaining credentials support
+  origin: ['https://ebfiwb.vercel.app', 'http://localhost:5173'], // Allow both production and development origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
