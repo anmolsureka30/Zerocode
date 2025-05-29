@@ -29,7 +29,7 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
         ? 'generate-react-structure-claude' 
         : 'generate-react-structure';
       
-      // Remove trailing slash from API_URL if present
+      // Remove trailing slash from API_URL if present and ensure no double /api
       const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
       const fullUrl = `${baseUrl}/${endpoint}`;
       

@@ -136,6 +136,7 @@ interface DebugLogEntry {
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes prefix
   const apiRouter = app.use("/api", (req, res, next) => {
+    console.log('📨 API Request:', req.method, req.path);
     next();
   });
 
@@ -228,196 +229,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // EXISTING: OpenAI React structure generation endpoint
+  // App generation endpoints
   app.post("/api/generate-react-structure", async (req: Request, res: Response) => {
     try {
+      console.log('🚀 Generating app with OpenAI');
       const { prompt, settings } = req.body;
-      const aiProvider = settings?.aiProvider || 'openai';
       
-      console.log('🚀 Generating app with provider:', aiProvider);
-      
-      // Generate app structure based on AI provider
-      let generatedApp;
-      switch (aiProvider.toLowerCase()) {
-        case 'claude':
-          generatedApp = await planAppFilesWithClaude(
-            prompt,
-            settings.framework || "React",
-            settings.styling || "Tailwind CSS",
-            settings.stateManagement || "React Hooks",
-            settings.buildTool || "Vite"
-          );
-          break;
-        case 'gemini':
-          generatedApp = await planAppFilesWithClaude(
-            prompt,
-            settings.framework || "React",
-            settings.styling || "Tailwind CSS",
-            settings.stateManagement || "React Hooks",
-            settings.buildTool || "Vite"
-          );
-          break;
-        case 'openai':
-        default:
-          generatedApp = await planAppFiles(
-            prompt,
-            settings.framework || "React",
-            settings.styling || "Tailwind CSS",
-            settings.stateManagement || "React Hooks",
-            settings.buildTool || "Vite"
-          );
+      if (!prompt) {
+        return res.status(400).json({ error: "Missing prompt" });
       }
 
-      res.json(generatedApp);
+      const result = await planAppFiles(prompt, settings);
+      res.json(result);
     } catch (error: any) {
-      console.error('❌ Error in app generation:', error);
+      console.error('❌ OpenAI generation error:', error);
       res.status(500).json({ 
-        error: 'Failed to generate app',
+        error: "Failed to generate app structure",
         details: error.message 
       });
     }
   });
-  
-// Add this route to your server/routes.ts file, after the other routes
 
-// Waitlist submission endpoint
-app.post("/api/waitlist", async (req: Request, res: Response) => {
-  try {
-    const { name, email, phone } = req.body;
-    
-    // Basic validation
-    if (!name || !email) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Name and email are required' 
-      });
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Please enter a valid email address' 
-      });
-    }
-    
-    console.log('Waitlist submission received:', { name, email, phone });
-    
+  app.post("/api/generate-react-structure-claude", async (req: Request, res: Response) => {
     try {
-      // Use the clientPromise
-      const client = await clientPromise;
-      const db = client.db('zerocode');
+      console.log('🚀 Generating app with Claude');
+      const { prompt, settings } = req.body;
       
-      // Check if email already exists in waitlist
-      const existingEntry = await db.collection('waitlist').findOne({ email });
-      if (existingEntry) {
+      if (!prompt) {
+        return res.status(400).json({ error: "Missing prompt" });
+      }
+
+      const result = await planAppFilesWithClaude(prompt, settings);
+      res.json(result);
+    } catch (error: any) {
+      console.error('❌ Claude generation error:', error);
+      res.status(500).json({ 
+        error: "Failed to generate app structure",
+        details: error.message 
+      });
+    }
+  });
+
+  // Waitlist submission endpoint
+  app.post("/api/waitlist", async (req: Request, res: Response) => {
+    try {
+      const { name, email, phone } = req.body;
+      
+      // Basic validation
+      if (!name || !email) {
         return res.status(400).json({ 
           success: false, 
-          message: 'This email is already on our waitlist' 
+          message: 'Name and email are required' 
         });
       }
       
-      // Create waitlist entry object
-      const waitlistEntry = {
-        name,
-        email,
-        phone: phone || null,
-        submittedAt: new Date(),
-        status: 'pending', // pending, invited, registered
-        source: 'landing_page'
-      };
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Please enter a valid email address' 
+        });
+      }
       
-      // Insert waitlist entry
-      console.log('Attempting to insert waitlist entry into MongoDB...');
-      const result = await db.collection('waitlist').insertOne(waitlistEntry);
-      console.log('MongoDB waitlist insert result:', result);
+      console.log('Waitlist submission received:', { name, email, phone });
       
-      // Return success
-      return res.status(201).json({
-        success: true,
-        message: 'Successfully added to waitlist! We\'ll notify you when we launch.',
-        entryId: result.insertedId
-      });
-    } catch (dbError: any) {
-      console.error('DATABASE ERROR (waitlist):', dbError);
+      try {
+        // Use the clientPromise
+        const client = await clientPromise;
+        const db = client.db('zerocode');
+        
+        // Check if email already exists in waitlist
+        const existingEntry = await db.collection('waitlist').findOne({ email });
+        if (existingEntry) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'This email is already on our waitlist' 
+          });
+        }
+        
+        // Create waitlist entry object
+        const waitlistEntry = {
+          name,
+          email,
+          phone: phone || null,
+          submittedAt: new Date(),
+          status: 'pending', // pending, invited, registered
+          source: 'landing_page'
+        };
+        
+        // Insert waitlist entry
+        console.log('Attempting to insert waitlist entry into MongoDB...');
+        const result = await db.collection('waitlist').insertOne(waitlistEntry);
+        console.log('MongoDB waitlist insert result:', result);
+        
+        // Return success
+        return res.status(201).json({
+          success: true,
+          message: 'Successfully added to waitlist! We\'ll notify you when we launch.',
+          entryId: result.insertedId
+        });
+      } catch (dbError: any) {
+        console.error('DATABASE ERROR (waitlist):', dbError);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Database error while adding to waitlist',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('WAITLIST SUBMISSION ERROR:', error);
       return res.status(500).json({ 
         success: false, 
-        message: 'Database error while adding to waitlist',
-        error: dbError.message
-      });
-    }
-  } catch (error: any) {
-    console.error('WAITLIST SUBMISSION ERROR:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Server error during waitlist submission',
-      error: error.message
-    });
-  }
-});
-
-  // NEW: Claude React structure generation endpoint
-  app.post("/api/generate-react-structure-claude", async (req: Request, res: Response) => {
-    console.log("🔥🔥🔥 CLAUDE ENDPOINT HIT! 🔥🔥🔥");
-    console.log("Request body:", JSON.stringify(req.body, null, 2));
-    
-    try {
-      const { prompt, settings = {} } = req.body;
-      if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
-      }
-
-      console.log('🚀 Generating React structure with Claude 3.7 Sonnet for:', prompt);
-
-      const result = await planAppFilesWithClaude(
-        prompt,
-        settings.framework || "React",
-        settings.styling || "Tailwind CSS", 
-        settings.stateManagement || "React Hooks",
-        settings.buildTool || "Vite"
-      );
-
-      console.log('📋 Claude generated files:', result.files?.map((f: any) => f.path || f.name));
-      console.log('📋 Dependencies:', Object.keys(result.dependencies || {}));
-      console.log('📋 DevDependencies:', Object.keys(result.devDependencies || {}));
-
-      const validation = validateGeneratedCodeFlexible(result);
-      
-      if (!validation.isValid) {
-        console.error('❌ Claude generated structure failed validation:', validation.errors);
-        return res.status(400).json({ 
-          error: "Generated structure is invalid",
-          details: validation.errors,
-          warnings: validation.warnings
-        });
-      }
-
-      if (validation.warnings.length > 0) {
-        console.warn('⚠️ Claude structure generated with warnings:', validation.warnings);
-      }
-
-      console.log(`✅ Claude React structure validated successfully with ${result.files?.length || 0} files`);
-      
-      if (result && result.files) {
-        console.log('[Server] Claude generated files being returned:', result.files.map((f: any) => ({ name: f.name, path: f.path, content: (f.content || '').slice(0, 100) })));
-      }
-      
-      res.json({
-        ...result,
-        meta: {
-          filesGenerated: result.files?.length || 0,
-          validationPassed: true,
-          warnings: validation.warnings,
-          aiProvider: 'claude'
-        }
-      });
-
-    } catch (error: any) {
-      console.error('❌ Error generating React structure with Claude:', error);
-      res.status(500).json({ 
-        error: "Failed to generate React structure with Claude",
-        details: error.message 
+        message: 'Server error during waitlist submission',
+        error: error.message
       });
     }
   });
