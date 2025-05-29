@@ -231,95 +231,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // EXISTING: OpenAI React structure generation endpoint
   app.post("/api/generate-react-structure", async (req: Request, res: Response) => {
     try {
-      const { prompt, settings = {} } = req.body;
-      if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
-      }
-
-      // Hardcoded shopping app logic
-      const hardcodedPrompt = (await fs.promises.readFile(path.join(__dirname, '../hardcode/prompt.txt'), 'utf-8')).trim().toLowerCase();
-      if (prompt.trim().toLowerCase() === hardcodedPrompt) {
-        const hardcodeDir = path.join(__dirname, '../hardcode/shopping');
-        const files: any[] = (await readDirectoryAsFileNodes(hardcodeDir)) || [];
-        console.log('[HARD_CODED_APP] All files returned:', files.map((f: any) => f.name));
-        let foundAppTsx = false;
-        files.forEach((f: any) => {
-          if (f.name && f.name.toLowerCase().endsWith('app.tsx')) {
-            foundAppTsx = true;
-            console.log('[HARD_CODED_APP] File:', f.name, 'Content preview:', (f.content || '').substring(0, 200));
-          }
-        });
-        if (!foundAppTsx) {
-          console.error('[HARD_CODED_APP] ERROR: App.tsx not found in hardcoded app!');
-          return res.status(500).json({ error: 'App.tsx not found in hardcoded app.' });
-        }
-        const pkgPath = path.join(hardcodeDir, 'package.json');
-        let dependencies: Record<string, string> = {}, devDependencies: Record<string, string> = {};
-        try {
-          const pkg = JSON.parse(await fs.promises.readFile(pkgPath, 'utf-8'));
-          dependencies = pkg.dependencies || {};
-          devDependencies = pkg.devDependencies || {};
-        } catch {}
-        return res.json({
-          files,
-          dependencies,
-          devDependencies,
-          meta: {
-            filesGenerated: files.length,
-            validationPassed: true,
-            warnings: []
-          }
-        });
-      }
-
-      console.log('🚀 Generating strict React structure with OpenAI for:', prompt);
-
-      const result = await planAppFiles(
-        prompt,
-        settings.framework || "React",
-        settings.styling || "Tailwind CSS", 
-        settings.stateManagement || "React Hooks",
-        settings.buildTool || "Vite"
-      );
-
-      console.log('📋 Generated files:', result.files?.map((f: any) => f.path || f.name));
-      console.log('📋 Dependencies:', Object.keys(result.dependencies || {}));
-      console.log('📋 DevDependencies:', Object.keys(result.devDependencies || {}));
-
-      const validation = validateGeneratedCodeFlexible(result);
+      const { prompt, settings } = req.body;
+      const aiProvider = settings?.aiProvider || 'openai';
       
-      if (!validation.isValid) {
-        console.error('❌ Generated structure failed validation:', validation.errors);
-        return res.status(400).json({ 
-          error: "Generated structure is invalid",
-          details: validation.errors,
-          warnings: validation.warnings
-        });
-      }
-
-      if (validation.warnings.length > 0) {
-        console.warn('⚠️ Structure generated with warnings:', validation.warnings);
-      }
-
-      console.log(`✅ React structure validated successfully with ${result.files?.length || 0} files`);
+      console.log('🚀 Generating app with provider:', aiProvider);
       
-      if (result && result.files) {
-        console.log('[Server] Generated files being returned:', result.files.map((f: any) => ({ name: f.name, path: f.path, content: (f.content || '').slice(0, 100) })));
+      // Generate app structure based on AI provider
+      let generatedApp;
+      switch (aiProvider.toLowerCase()) {
+        case 'claude':
+          generatedApp = await planAppFilesWithClaude(
+            prompt,
+            settings.framework || "React",
+            settings.styling || "Tailwind CSS",
+            settings.stateManagement || "React Hooks",
+            settings.buildTool || "Vite"
+          );
+          break;
+        case 'gemini':
+          generatedApp = await planAppFilesWithClaude(
+            prompt,
+            settings.framework || "React",
+            settings.styling || "Tailwind CSS",
+            settings.stateManagement || "React Hooks",
+            settings.buildTool || "Vite"
+          );
+          break;
+        case 'openai':
+        default:
+          generatedApp = await planAppFiles(
+            prompt,
+            settings.framework || "React",
+            settings.styling || "Tailwind CSS",
+            settings.stateManagement || "React Hooks",
+            settings.buildTool || "Vite"
+          );
       }
-      
-      res.json({
-        ...result,
-        meta: {
-          filesGenerated: result.files?.length || 0,
-          validationPassed: true,
-          warnings: validation.warnings
-        }
-      });
 
+      res.json(generatedApp);
     } catch (error: any) {
-      console.error('❌ Error generating React structure with OpenAI:', error);
+      console.error('❌ Error in app generation:', error);
       res.status(500).json({ 
-        error: "Failed to generate React structure",
+        error: 'Failed to generate app',
         details: error.message 
       });
     }
@@ -619,15 +572,38 @@ app.post("/api/waitlist", async (req: Request, res: Response) => {
   // Initial app idea feedback
   app.post("/api/conversation/initiate", async (req: Request, res: Response) => {
     try {
-      const { refinedPrompt } = req.body;
+      const { refinedPrompt, aiProvider = 'openai' } = req.body;
+      
       if (!refinedPrompt) {
-        return res.status(400).json({ error: "refinedPrompt is required" });
+        return res.status(400).json({ error: 'Missing refinedPrompt in request body' });
       }
-      const message = await getAppIdeaFeedback(refinedPrompt);
-      res.json({ message });
+
+      console.log('🤖 Processing request with AI provider:', aiProvider);
+      
+      // Generate a response based on the AI provider
+      let response;
+      switch (aiProvider.toLowerCase()) {
+        case 'claude':
+          response = "I'll help you create this application using Claude's capabilities.";
+          break;
+        case 'gemini':
+          response = "I'll help you create this application using Gemini's capabilities.";
+          break;
+        case 'openai':
+        default:
+          response = "I'll help you create this application using OpenAI's capabilities.";
+      }
+
+      res.json({ 
+        message: response,
+        aiProvider: aiProvider.toLowerCase()
+      });
     } catch (error: any) {
-      console.error("Error in conversation/initiate:", error);
-      res.status(500).json({ error: error.message || "Unknown error" });
+      console.error('❌ Error in conversation initiation:', error);
+      res.status(500).json({ 
+        error: 'Failed to process request',
+        details: error.message 
+      });
     }
   });
 

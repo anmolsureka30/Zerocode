@@ -499,19 +499,26 @@ export default function Home({ isDarkMode: propIsDarkMode, toggleTheme: propTogg
   const handleUserPrompt = async (userPrompt: string) => {
     setSystemMessage(""); // Clear previous system message
     try {
-      // Show a temporary thinking message (optional)
+      // Show a temporary thinking message
       setSystemMessage("Thinking...");
       
-      console.log('📡 Making request to:', `${API_URL}/conversation/initiate`);
+      // Ensure API_URL is properly formatted
+      const apiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+      const endpoint = `${apiUrl}/conversation/initiate`;
+      
+      console.log('📡 Making request to:', endpoint);
       
       // Call the conversation feedback endpoint
-      const res = await fetch(`${API_URL}/conversation/initiate`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ refinedPrompt: userPrompt })
+        body: JSON.stringify({ 
+          refinedPrompt: userPrompt,
+          aiProvider: selectedAIProvider // Pass the selected AI provider
+        })
       });
 
       console.log('📥 Response status:', res.status);
@@ -529,7 +536,10 @@ export default function Home({ isDarkMode: propIsDarkMode, toggleTheme: propTogg
         setSystemMessage(data.message);
         // After a short delay, trigger app generation
         setTimeout(() => {
-          generateApp(userPrompt, { ...projectSettings, aiProvider: selectedAIProvider });
+          generateApp(userPrompt, { 
+            ...projectSettings, 
+            aiProvider: selectedAIProvider 
+          });
         }, 1200);
       } else {
         throw new Error('Invalid response format: missing message');

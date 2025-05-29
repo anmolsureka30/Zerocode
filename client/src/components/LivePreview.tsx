@@ -11,13 +11,24 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-/*import CreativityMeter from "@/components/CreativityMeter";*/
 import { PreviewSizeType, FileNode } from "@/lib/types";
-import { GeneratedApp } from "@shared/schema";
+import { API_URL } from "@/config/env";
 import React from "react";
 import { Sandpack } from "@codesandbox/sandpack-react";
 import { githubLight } from "@codesandbox/sandpack-themes";
 import { useToast } from "@/hooks/use-toast";
+
+// Define GeneratedApp type if @shared/schema is not available
+interface GeneratedApp {
+  files?: FileNode[];
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  meta?: {
+    filesGenerated: number;
+    validationPassed: boolean;
+    warnings: string[];
+  };
+}
 
 interface LivePreviewProps {
   isGenerating: boolean;
@@ -132,14 +143,24 @@ export default function LivePreview({
   const handleSandpackError = async (error: any) => {
     if (!error || typeof error !== "string") return;
     setSandboxError(error);
+    
     // Only auto-fix for build/runtime errors, not user code errors
     if (/ModuleNotFoundError|SyntaxError|ReferenceError|Cannot find module|Unexpected token/.test(error)) {
       setIsFixing(true);
-      toast({ title: "Fixing app errors...", description: error, duration: 3000 });
+      toast({ 
+        title: "Fixing app errors...", 
+        description: error, 
+        duration: 3000 
+      });
+      
       try {
-        const res = await fetch("/api/fix-errors", {
+        const apiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+        const res = await fetch(`${apiUrl}/fix-errors`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
           body: JSON.stringify({
             errors: [error],
             files: generatedFiles,
@@ -149,16 +170,30 @@ export default function LivePreview({
             aiProvider
           })
         });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
         const data = await res.json();
-        if (res.ok && data.files) {
-          toast({ title: "App errors fixed!", description: "Preview will reload.", duration: 3000 });
+        if (data.files) {
+          toast({ 
+            title: "App errors fixed!", 
+            description: "Preview will reload.", 
+            duration: 3000 
+          });
           // Replace files with fixed files
           onRegenerateClick?.(data.files);
         } else {
-          toast({ title: "Could not auto-fix app errors", description: data.error || "Unknown error", duration: 4000, variant: "destructive" });
+          throw new Error(data.error || "Unknown error");
         }
       } catch (err: any) {
-        toast({ title: "Error fixing app", description: String(err), duration: 4000, variant: "destructive" });
+        toast({ 
+          title: "Could not auto-fix app errors", 
+          description: err.message || "Unknown error", 
+          duration: 4000, 
+          variant: "destructive" 
+        });
       } finally {
         setIsFixing(false);
       }
