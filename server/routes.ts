@@ -503,24 +503,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Missing refinedPrompt in request body' });
       }
 
-      console.log('🤖 Processing request with AI provider:', aiProvider);
+      console.log('🤖 Processing conversation initiation with AI provider:', aiProvider);
       
-      // Generate a response based on the AI provider
-      let response;
-      switch (aiProvider.toLowerCase()) {
-        case 'claude':
-          response = "I'll help you create this application using Claude's capabilities.";
-          break;
-        case 'gemini':
-          response = "I'll help you create this application using Gemini's capabilities.";
-          break;
-        case 'openai':
-        default:
-          response = "I'll help you create this application using OpenAI's capabilities.";
+      // Get feedback using the conversational bot agent
+      const feedback = await getAppIdeaFeedback(refinedPrompt);
+      
+      if (!feedback) {
+        throw new Error('Failed to generate feedback');
       }
 
       res.json({ 
-        message: response,
+        message: feedback,
         aiProvider: aiProvider.toLowerCase()
       });
     } catch (error: any) {
@@ -535,12 +528,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update feedback
   app.post("/api/conversation/update", async (req: Request, res: Response) => {
     try {
-      const { updatePrompt, appStateSummary } = req.body;
+      const { updatePrompt, appStateSummary, aiProvider = 'openai' } = req.body;
+      
       if (!updatePrompt || !appStateSummary) {
         return res.status(400).json({ error: "updatePrompt and appStateSummary are required" });
       }
-      const message = await getUpdateFeedback(updatePrompt, appStateSummary);
-      res.json({ message });
+
+      console.log('🤖 Processing conversation update with AI provider:', aiProvider);
+      
+      const feedback = await getUpdateFeedback(updatePrompt, appStateSummary);
+      
+      if (!feedback) {
+        throw new Error('Failed to generate update feedback');
+      }
+
+      res.json({ 
+        message: feedback,
+        aiProvider: aiProvider.toLowerCase()
+      });
     } catch (error: any) {
       console.error("Error in conversation/update:", error);
       res.status(500).json({ error: error.message || "Unknown error" });

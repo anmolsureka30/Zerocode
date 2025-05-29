@@ -13,22 +13,34 @@ When given an app idea, always:
    - Tech stack
    - User flows
    - Any other relevant considerations
-Be clear, concise, and encouraging.
+3. End with an encouraging message about implementing the idea.
+Be clear, concise, and encouraging. Focus on practical implementation details.
 `;
 
   const userPrompt = `App idea: "${refinedPrompt}"`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo-0125",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-    temperature: 0.5,
-    max_tokens: 800,
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-0125",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
 
-  return response.choices[0].message.content?.trim() || "";
+    const feedback = response.choices[0].message.content?.trim();
+    
+    if (!feedback) {
+      throw new Error('No feedback generated');
+    }
+
+    return feedback;
+  } catch (error) {
+    console.error('Error generating app idea feedback:', error);
+    throw error;
+  }
 }
 
 export async function getUpdateFeedback(updatePrompt: string, appStateSummary: string) {
@@ -37,9 +49,15 @@ export async function getUpdateFeedback(updatePrompt: string, appStateSummary: s
   const systemPrompt = `
 You are a friendly, expert AI product manager and UX designer.
 When the user requests an update to the app, always:
-1. Acknowledge the update positively.
-2. Explain in short , how the change will be implemented 
-Be clear, concise, and encouraging.
+1. Acknowledge the update request positively.
+2. Provide a structured response:
+   - How the change will be implemented
+   - Impact on existing features
+   - Required modifications
+   - Potential challenges
+   - Best practices to follow
+3. End with an encouraging message about the update.
+Be clear, concise, and practical. Focus on implementation details.
 `;
 
   const userPrompt = `
@@ -47,15 +65,26 @@ Current app summary: ${appStateSummary}
 User update request: "${updatePrompt}"
 `;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo-0125",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-    temperature: 0.5,
-    max_tokens: 800,
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-0125",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
 
-  return response.choices[0].message.content?.trim() || "";
+    const feedback = response.choices[0].message.content?.trim();
+    
+    if (!feedback) {
+      throw new Error('No feedback generated');
+    }
+
+    return feedback;
+  } catch (error) {
+    console.error('Error generating update feedback:', error);
+    throw error;
+  }
 } 
