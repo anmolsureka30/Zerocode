@@ -15,13 +15,18 @@ const app = express();
 
 // Get allowed origins from environment variables
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',')
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
   : [
       'http://localhost:5173',
       'https://ebfiwb.vercel.app',
       'https://just0code.com',
       'https://frontend-three-beta-55.vercel.app'
     ];
+
+// Add development origins in development mode
+if (process.env.NODE_ENV === 'development') {
+  allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:5173');
+}
 
 console.log('🔒 Allowed CORS origins:', allowedOrigins);
 
@@ -35,6 +40,12 @@ app.use(cors({
     }
     
     console.log('📨 Request from origin:', origin);
+    
+    // In development, allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Development mode: allowing all origins');
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) === -1) {
       console.warn(`⚠️ Blocked request from unauthorized origin: ${origin}`);
@@ -59,7 +70,7 @@ app.options('*', (req, res) => {
   res.status(204).end();
 });
 
-// Add error handling middleware
+// Add error handling middleware for CORS
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('❌ Error:', err);
   
@@ -68,7 +79,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     return res.status(403).json({
       error: 'CORS Error',
       message: 'Request blocked by CORS policy',
-      origin: req.headers.origin
+      origin: req.headers.origin,
+      allowedOrigins
     });
   }
   
