@@ -26,10 +26,14 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
       
       // Choose endpoint based on AI provider
       const endpoint = settings.aiProvider === 'claude' 
-        ? '/api/generate-react-structure-claude' 
-        : '/api/generate-react-structure';
+        ? 'generate-react-structure-claude' 
+        : 'generate-react-structure';
       
-      console.log('📡 Making request to:', `${API_URL}${endpoint}`);
+      // Remove trailing slash from API_URL if present
+      const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+      const fullUrl = `${baseUrl}/${endpoint}`;
+      
+      console.log('📡 Making request to:', fullUrl);
       
       const requestBody = {
         prompt,
@@ -44,7 +48,7 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
       
       console.log('📤 Request body:', JSON.stringify(requestBody, null, 2));
       
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
