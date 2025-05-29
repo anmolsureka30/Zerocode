@@ -17,10 +17,25 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { type FileNode } from "./shared/schema.js";
+import cors from "cors";
 
 // Polyfill for __dirname and __filename in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'https://ebfiwb.vercel.app',
+    'https://ebfiwb-chft.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+};
 
 // Helper functions for backend validation - Fixed type annotations
 function extractComponentNames(code: string): string[] {
@@ -134,6 +149,9 @@ interface DebugLogEntry {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply CORS middleware
+  app.use(cors(corsOptions));
+  
   // API routes prefix
   const apiRouter = app.use("/api", (req, res, next) => {
     console.log('📨 API Request:', req.method, req.path);
@@ -239,13 +257,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing prompt" });
       }
 
+      // Set a longer timeout for the response
+      res.setTimeout(120000); // 2 minutes
+
+      console.log('📝 Processing prompt:', prompt);
+      console.log('⚙️ Settings:', settings);
+
       const result = await planAppFiles(prompt, settings);
+      
+      // Validate the result before sending
+      if (!result || !result.files || !Array.isArray(result.files)) {
+        throw new Error('Invalid generation result structure');
+      }
+
+      console.log('✅ Generation successful, files generated:', result.files.length);
       res.json(result);
     } catch (error: any) {
       console.error('❌ OpenAI generation error:', error);
       res.status(500).json({ 
         error: "Failed to generate app structure",
-        details: error.message 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });
@@ -259,13 +291,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing prompt" });
       }
 
+      // Set a longer timeout for the response
+      res.setTimeout(120000); // 2 minutes
+
+      console.log('📝 Processing prompt:', prompt);
+      console.log('⚙️ Settings:', settings);
+
       const result = await planAppFilesWithClaude(prompt, settings);
+      
+      // Validate the result before sending
+      if (!result || !result.files || !Array.isArray(result.files)) {
+        throw new Error('Invalid generation result structure');
+      }
+
+      console.log('✅ Generation successful, files generated:', result.files.length);
       res.json(result);
     } catch (error: any) {
       console.error('❌ Claude generation error:', error);
       res.status(500).json({ 
         error: "Failed to generate app structure",
-        details: error.message 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });
