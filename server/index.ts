@@ -13,13 +13,20 @@ const __dirname = path.dirname(__filename);
 globalThis.fetch = fetch as any;
 const app = express();
 
+// Get allowed origins from environment variables
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173', 'https://ebfiwb.vercel.app', 'https://just0code.com'];
+
 // Add CORS configuration
 app.use(cors({
-  origin: ['https://ebfiwb.vercel.app', 'http://localhost:5173'], // Allow both production and development origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
   credentials: true,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400 // 24 hours
 }));
 
 // Handle preflight OPTIONS requests explicitly

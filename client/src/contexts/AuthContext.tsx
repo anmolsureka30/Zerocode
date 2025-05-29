@@ -1,9 +1,7 @@
 // client/src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-
-// Define API URL - using Vite's import.meta.env format
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { API_URL } from '../config/env';
 
 // Define user interface
 interface User {

@@ -42,6 +42,7 @@
     "zod": "^3.25.23"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/node": "^20.17.50",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",

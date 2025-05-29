@@ -1,8 +1,6 @@
 // client/src/api/waitlist.ts - TypeScript version of your existing waitlist.js
 import axios, { AxiosResponse } from 'axios';
-
-// Use deployed backend URL
-const API_URL = 'https://ebfiwb-chft.vercel.app/api';
+import { API_URL } from '../config/env';
 
 // Define TypeScript interfaces
 export interface WaitlistResponse {

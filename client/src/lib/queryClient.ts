@@ -1,7 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { API_BASE_URL } from '../config/env';
 
 // ✅ Set base URL from .env
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://ebfiwb-chft.vercel.app";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {

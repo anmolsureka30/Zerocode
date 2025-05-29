@@ -1,8 +1,6 @@
 // client/src/ApiService.ts - Create this new file
 import axios from 'axios';
-
-// Define the base API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+import { API_URL } from './config/env';
 
 // Create axios instance with default config
 const apiClient = axios.create({
