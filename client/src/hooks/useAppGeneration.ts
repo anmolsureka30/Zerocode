@@ -1,7 +1,7 @@
 // client/src/hooks/useAppGeneration.ts - Fixed AI Provider routing
 import { useState } from "react";
 import { ProjectSettings } from "@/lib/types";
-import { GeneratedApp } from "@shared/schema";
+import { API_URL } from '../config/env';
 
 interface UseAppGenerationOptions {
   onSuccess?: (data: any) => void;
@@ -12,7 +12,7 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
   const [isGenerating, setIsGenerating] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [generatedApp, setGeneratedApp] = useState<GeneratedApp | null>(null);
+  const [generatedApp, setGeneratedApp] = useState<any | null>(null);
 
   const generateApp = async (prompt: string, settings: ProjectSettings) => {
     setIsGenerating(true);
@@ -24,16 +24,12 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
       console.log('🚀 Starting app generation:', { prompt, settings });
       console.log('🔍 AI Provider selected:', settings.aiProvider || 'openai (default)');
       
-      // Get API URL from environment or use default
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-      
       // Choose endpoint based on AI provider
       const endpoint = settings.aiProvider === 'claude' 
         ? '/api/generate-react-structure-claude' 
         : '/api/generate-react-structure';
       
-      console.log('📡 Making request to:', `${apiUrl}${endpoint}`);
-      console.log('📡 Using AI provider:', settings.aiProvider || 'openai');
+      console.log('📡 Making request to:', `${API_URL}${endpoint}`);
       
       const requestBody = {
         prompt,
@@ -48,10 +44,11 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
       
       console.log('📤 Request body:', JSON.stringify(requestBody, null, 2));
       
-      const response = await fetch(`${apiUrl}${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(requestBody),
       });
@@ -60,7 +57,7 @@ export function useAppGeneration({ onSuccess, onError }: UseAppGenerationOptions
       console.log('📥 Response ok:', response.ok);
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error('❌ API Error Response:', errorData);
         throw new Error(errorData.error || errorData.details || `HTTP ${response.status}: ${response.statusText}`);
       }

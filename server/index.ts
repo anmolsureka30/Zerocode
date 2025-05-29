@@ -16,11 +16,26 @@ const app = express();
 // Get allowed origins from environment variables
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173', 'https://ebfiwb.vercel.app', 'https://just0code.com'];
+  : [
+      'http://localhost:5173',
+      'https://ebfiwb.vercel.app',
+      'https://just0code.com',
+      'https://frontend-three-beta-55.vercel.app'
+    ];
 
 // Add CORS configuration
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.warn(`⚠️ Blocked request from unauthorized origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+    
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
@@ -32,6 +47,31 @@ app.use(cors({
 // Handle preflight OPTIONS requests explicitly
 app.options('*', (req, res) => {
   res.status(204).end();
+});
+
+// Add error handling middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('❌ Error:', err);
+  
+  // Handle CORS errors
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: 'CORS Error',
+      message: 'Request blocked by CORS policy',
+      origin: req.headers.origin
+    });
+  }
+  
+  // Handle other errors
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  
+  res.status(status).json({ 
+    error: true,
+    message,
+    path: req.path,
+    method: req.method
+  });
 });
 
 app.use(express.json({ limit: '10mb' }));

@@ -31,6 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { API_URL } from '../config/env';
 
 // Add onProfileClick prop to the Home component
 interface HomeProps {
@@ -500,25 +501,50 @@ export default function Home({ isDarkMode: propIsDarkMode, toggleTheme: propTogg
     try {
       // Show a temporary thinking message (optional)
       setSystemMessage("Thinking...");
+      
+      console.log('📡 Making request to:', `${API_URL}/conversation/initiate`);
+      
       // Call the conversation feedback endpoint
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-      const res = await fetch(`${apiUrl}/api/conversation/initiate`, {
+      const res = await fetch(`${API_URL}/conversation/initiate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ refinedPrompt: userPrompt })
       });
+
+      console.log('📥 Response status:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error('❌ API Error:', errorData);
+        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+
       const data = await res.json();
-      if (res.ok && data.message) {
+      console.log('✅ API Response:', data);
+      
+      if (data.message) {
         setSystemMessage(data.message);
         // After a short delay, trigger app generation
         setTimeout(() => {
           generateApp(userPrompt, { ...projectSettings, aiProvider: selectedAIProvider });
         }, 1200);
       } else {
-        setSystemMessage(data.error ? String(data.error) : 'Failed to get feedback.');
+        throw new Error('Invalid response format: missing message');
       }
     } catch (err: any) {
-      setSystemMessage('Error contacting feedback API. ' + (err?.message || String(err)));
+      console.error('❌ Error in handleUserPrompt:', err);
+      setSystemMessage(`Error: ${err.message || 'Failed to get feedback. Please try again.'}`);
+      
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to get feedback. Please try again.',
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 
