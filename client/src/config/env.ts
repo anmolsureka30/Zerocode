@@ -19,8 +19,15 @@ const formatUrl = (url: string): string => {
 const API_BASE_URL = formatUrl(import.meta.env.VITE_API_BASE_URL || 'ebfiwb-chft.vercel.app');
 
 // Construct API URL - ensure it ends with /api
-const rawApiUrl = import.meta.env.VITE_API_URL || `${API_BASE_URL}/api`;
-const API_URL = formatUrl(rawApiUrl).replace(/\/api$/, '') + '/api';
+let API_URL = import.meta.env.VITE_API_URL || `${API_BASE_URL}/api`;
+
+// Format the API URL
+API_URL = formatUrl(API_URL);
+
+// Ensure API URL ends with /api
+if (!API_URL.endsWith('/api')) {
+  API_URL = `${API_URL}/api`;
+}
 
 // Validate URLs
 if (!API_URL || !API_BASE_URL) {
