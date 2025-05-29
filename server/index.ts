@@ -23,17 +23,25 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'https://frontend-three-beta-55.vercel.app'
     ];
 
+console.log('🔒 Allowed CORS origins:', allowedOrigins);
+
 // Add CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('📨 Request with no origin');
+      return callback(null, true);
+    }
+    
+    console.log('📨 Request from origin:', origin);
     
     if (allowedOrigins.indexOf(origin) === -1) {
       console.warn(`⚠️ Blocked request from unauthorized origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'), false);
     }
     
+    console.log('✅ Allowed request from origin:', origin);
     return callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -41,11 +49,13 @@ app.use(cors({
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   credentials: true,
   optionsSuccessStatus: 204,
-  maxAge: 86400 // 24 hours
+  maxAge: 86400, // 24 hours
+  preflightContinue: false
 }));
 
 // Handle preflight OPTIONS requests explicitly
 app.options('*', (req, res) => {
+  console.log('🔄 Handling preflight request for:', req.path);
   res.status(204).end();
 });
 
