@@ -60,7 +60,6 @@ const PartnerLogos = () => {
     { name: 'IIT Guwahati', logo: '/logos/iit-guwahati.png' },
     { name: 'IIT Bombay', logo: '/logos/iit-bombay.png' },
     { name: 'IIT Kanpur', logo: '/logos/iit-kanpur.png' },
-    { name: 'SINE IITB', logo: '/logos/sine-iitb.png' },
     { name: 'IIT Delhi', logo: '/logos/iit-delhi.png' },
   ];
   
