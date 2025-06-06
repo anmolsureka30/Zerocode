@@ -113,7 +113,7 @@ const testimonials = [
     stars: 5,
     name: 'James L.',
     verified: true,
-    text: ''
+    text: '"Finding a site that builds trendy sites in just one prompt is something exciting."'
   }
 ];
 
