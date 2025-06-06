@@ -103,19 +103,17 @@ const testimonials = [
     stars: 5,
     name: 'Sarah M.',
     verified: true,
-    text: '"I\'m blown away by the quality and style of the clothes I received from Shopico. From casual wear to elegant dresses, every piece I\'ve bought has exceeded my expectations."'
+    text: '"I\'m blown away by the quality and style of the website I received from Zerocode. From casual wear to elegant dresses, every piece I\'ve bought has exceeded my expectations."'
   },
   {
     stars: 5,
     name: 'Alex K.',
     verified: true,
-    text: '"Finding clothes that align with my personal style used to be a challenge until I discovered Shopico. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions."'
-  },
-  {
+    text: '"Finding a site that builds deployable sites in just one prompt is something I have always been looking for."'
     stars: 5,
     name: 'James L.',
     verified: true,
-    text: '"As someone who\'s always on the lookout for unique fashion pieces, I\'m thrilled to have stumbled upon Shopico. The selection of clothes is not only diverse but also on-point with the latest trends."'
+    text: ''
   }
 ];
 
