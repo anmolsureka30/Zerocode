@@ -110,9 +110,10 @@ const testimonials = [
     name: 'Alex K.',
     verified: true,
     text: '"Finding a site that builds deployable sites in just one prompt is something I have always been looking for."'
-    stars: 5,
+    
   },
   {
+    stars: 5,
     name: 'James L.',
     verified: true,
     text: '"Finding a site that builds trendy sites in just one prompt is something exciting."'
