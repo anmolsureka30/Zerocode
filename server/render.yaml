@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: zerocode-backend
+    env: node
+    plan: free # Change to 'starter' or higher for production
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # - key: PORT
+      #   value: 5001 # Optional, Render sets PORT automatically
+      # Add your other environment variables below
+      # - key: MONGODB_URI
+      #   value: your-mongodb-uri
+    
+    # Render automatically sets the PORT env variable, which your app uses
+    # If you need persistent storage, add a disk section here
+    # disks:
+    #   - name: data
+    #     mountPath: /data 
