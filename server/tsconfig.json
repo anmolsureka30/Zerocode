@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "noImplicitAny": false,
-    "types": ["vitest/globals", "node"]
+    "types": ["node"]
   },
   "include": ["./**/*"],
   "exclude": ["node_modules", "dist"]
