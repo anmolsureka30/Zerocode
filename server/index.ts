@@ -115,4 +115,9 @@ app.options('*', (req, res) => {
   res.status(204).end();
 });
 
+// Add a GET / route for root
+app.get('/', (req, res) => {
+  res.json({ message: 'WDTAFG API Server' });
+});
+
 export default app;
