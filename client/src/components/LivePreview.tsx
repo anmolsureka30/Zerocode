@@ -75,6 +75,18 @@ class ErrorBoundary extends React.Component<{ children: ReactNode, onReset?: () 
   }
 }
 
+// Utility to sanitize code for browser preview
+function sanitizeCode(code: string): string {
+  // Remove require() calls
+  let sanitized = code.replace(/require\(.+?\);?/g, '');
+  // Remove incomplete JSX tags at end of lines
+  sanitized = sanitized.replace(/<\w+[^>]*>$/gm, '');
+  // Remove OpenAI artifacts (e.g., <|endoftext|>)
+  sanitized = sanitized.replace(/<\|endoftext\|>/g, '');
+  // Optionally, further sanitization can be added here
+  return sanitized;
+}
+
 function filesFromFileNodes(fileNodes: FileNode[], prefix = ""): Record<string, { code: string }> {
   const files: Record<string, { code: string }> = {};
   for (const node of fileNodes) {
@@ -90,7 +102,7 @@ function filesFromFileNodes(fileNodes: FileNode[], prefix = ""): Record<string, 
       const code = node.content || "";
       const isDefaultHelloWorld = defaultHelloWorldPatterns.every(p => code.includes(p));
       if (!isDefaultHelloWorld) {
-        files[fullPath] = { code };
+        files[fullPath] = { code: sanitizeCode(code) };
       }
     } else if (node.type === "folder" && node.children) {
       const childPrefix = node.path || (prefix ? prefix + "/" + node.name : "/" + node.name);
