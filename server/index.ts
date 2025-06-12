@@ -20,7 +20,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'http://localhost:5173',
       'https://ebfiwb.vercel.app',
       'https://just0code.com',
-      'https://frontend-three-beta-55.vercel.app'
+      'https://frontend-three-beta-55.vercel.app',
+      'https://veertesting.vercel.app',
     ];
 
 // Add development origins in development mode
