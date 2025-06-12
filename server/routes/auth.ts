@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import clientPromise from '../lib/mongodb.js';
+import cors from 'cors';
 
 // Create the router
 export const router = express.Router();
@@ -161,3 +162,6 @@ router.post('/login', async (req: Request, res: Response) => {
 
 // Use named export for the router
 // export default router; // Remove this line - we're using named export instead
+
+// After router is created
+router.options('*', cors());

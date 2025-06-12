@@ -31,29 +31,18 @@ if (process.env.NODE_ENV === 'development') {
 
 console.log('🔒 Allowed CORS origins:', allowedOrigins);
 
-// Add CORS configuration
+// Move CORS middleware to the very top
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
-      console.log('📨 Request with no origin');
       return callback(null, true);
     }
-    
-    console.log('📨 Request from origin:', origin);
-    
-    // In development, allow all origins
     if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Development mode: allowing all origins');
       return callback(null, true);
     }
-    
     if (allowedOrigins.indexOf(origin) === -1) {
-      console.warn(`⚠️ Blocked request from unauthorized origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'), false);
     }
-    
-    console.log('✅ Allowed request from origin:', origin);
     return callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -61,42 +50,11 @@ app.use(cors({
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   credentials: true,
   optionsSuccessStatus: 204,
-  maxAge: 86400, // 24 hours
+  maxAge: 86400,
   preflightContinue: false
 }));
 
-// Handle preflight OPTIONS requests explicitly
-app.options('*', (req, res) => {
-  console.log('🔄 Handling preflight request for:', req.path);
-  res.status(204).end();
-});
-
-// Add error handling middleware for CORS
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('❌ Error:', err);
-  
-  // Handle CORS errors
-  if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({
-      error: 'CORS Error',
-      message: 'Request blocked by CORS policy',
-      origin: req.headers.origin,
-      allowedOrigins
-    });
-  }
-  
-  // Handle other errors
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  
-  res.status(status).json({ 
-    error: true,
-    message,
-    path: req.path,
-    method: req.method
-  });
-});
-
+// Then add body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
