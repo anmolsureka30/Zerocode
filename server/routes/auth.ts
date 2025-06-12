@@ -89,8 +89,20 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
+// Handle preflight OPTIONS for /login
+router.options('/login', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://veertesting.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.status(204).end();
+});
+
 // User Login
 router.post('/login', async (req: Request, res: Response) => {
+  // Set CORS headers manually for serverless compatibility
+  res.setHeader('Access-Control-Allow-Origin', 'https://veertesting.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   try {
     const { email, password } = req.body;
     
