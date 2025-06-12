@@ -17,25 +17,10 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { type FileNode } from "./shared/schema.js";
-import cors from "cors";
 
 // Polyfill for __dirname and __filename in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// CORS configuration
-const corsOptions = {
-  origin: [
-    'https://ebfiwb.vercel.app',
-    'https://ebfiwb-chft.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  maxAge: 86400 // 24 hours
-};
 
 // Helper functions for backend validation - Fixed type annotations
 function extractComponentNames(code: string): string[] {
@@ -149,9 +134,6 @@ interface DebugLogEntry {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Apply CORS middleware
-  app.use(cors(corsOptions));
-  
   // API routes prefix
   const apiRouter = app.use("/api", (req, res, next) => {
     console.log('📨 API Request:', req.method, req.path);
