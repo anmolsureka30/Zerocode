@@ -106,38 +106,4 @@ if (authModule && authModule.router) {
   });
 }
 
-// The rest of your async setup should be in this IIFE
-(async () => {
-  try {
-    const server = await registerRoutes(app);
-
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      res.status(status).json({ message });
-      throw err;
-    });
-
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (process.env.NODE_ENV === "development") {
-      await setupVite(app, server);
-    } else {
-      // In production, we don't need to serve static files since frontend is separate
-      app.get('/', (req, res) => {
-        res.json({ message: 'WDTAFG API Server' });
-      });
-    }
-
-    // Use PORT environment variable with fallback to 5001
-    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5001;
-    server.listen(port, '0.0.0.0', () => {
-      console.log(`Server is running on port ${port}`);
-    });
-  } catch (error) {
-    console.error('Server startup error:', error);
-    process.exit(1);
-  }
-})();
+export default app;
