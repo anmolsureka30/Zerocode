@@ -18,6 +18,7 @@ import { Sandpack } from "@codesandbox/sandpack-react";
 import { githubLight } from "@codesandbox/sandpack-themes";
 import { useToast } from "@/hooks/use-toast";
 import apiClient from '../ApiService';
+import JSZip from 'jszip';
 
 // Define GeneratedApp type if @shared/schema is not available
 interface GeneratedApp {
@@ -113,6 +114,17 @@ function filesFromFileNodes(fileNodes: FileNode[], prefix = ""): Record<string, 
   return files;
 }
 
+// Add this before the LivePreview component
+const loadJSZip = async () => {
+  try {
+    const zip = new JSZip();
+    return zip;
+  } catch (error) {
+    console.error('Failed to load JSZip:', error);
+    return null;
+  }
+};
+
 export default function LivePreview({
   isGenerating,
   isComplete,
@@ -128,6 +140,8 @@ export default function LivePreview({
   const [isFixing, setIsFixing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'sandpack' | 'vm'>('sandpack');
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Convert files for Sandpack
   const files = filesFromFileNodes(generatedFiles);
@@ -215,11 +229,18 @@ export default function LivePreview({
     }
   };
 
-  // Handler to request preview from backend
+  // Update handlePreview function
   const handlePreview = async () => {
     setIsPreviewing(true);
     setPreviewUrl(null);
+    setPreviewError(null);
+    
     try {
+      const zip = await loadJSZip();
+      if (!zip) {
+        throw new Error('Failed to initialize JSZip');
+      }
+
       // Prepare files object for API
       const filesObj: Record<string, string> = {};
       for (const file of generatedFiles) {
@@ -227,24 +248,38 @@ export default function LivePreview({
           filesObj[file.path || file.name] = file.content;
         }
       }
+
       const response = await apiClient.post('/preview', {
         files: filesObj,
         dependencies,
       });
-      if (response.data && response.data.url) {
-        setPreviewUrl(`http://34.100.168.179${response.data.url}`);
+
+      if (response.data && response.data.previewUrl) {
+        console.log('Preview URL:', response.data.previewUrl);
+        setPreviewUrl(response.data.previewUrl);
+        setPreviewMode('vm');
       } else {
         throw new Error('No preview URL returned');
       }
     } catch (err: any) {
-      setPreviewUrl(null);
+      console.error('Preview error:', err);
+      setPreviewError(err.message || 'Failed to generate preview');
+      setPreviewMode('sandpack'); // Fallback to Sandpack
       toast({
         title: 'Preview Error',
-        description: err.message || 'Failed to generate preview',
+        description: err.message || 'Failed to generate preview. Falling back to Sandpack.',
         variant: 'destructive',
       });
     } finally {
       setIsPreviewing(false);
+    }
+  };
+
+  // Add preview mode toggle
+  const togglePreviewMode = () => {
+    setPreviewMode(prev => prev === 'sandpack' ? 'vm' : 'sandpack');
+    if (previewMode === 'vm') {
+      setPreviewUrl(null);
     }
   };
 
@@ -291,40 +326,52 @@ export default function LivePreview({
   return (
     <div className="flex flex-col h-full" style={{ minHeight: '100%' }}>
       {/* Preview size switcher */}
-      <div className="flex items-center space-x-2 p-2 border-b shrink-0">
-        <Button
-          variant={previewSize === "mobile" ? "default" : "ghost"}
-          size="icon"
-          aria-label="Mobile preview"
-          onClick={() => setPreviewSize("mobile")}
-        >
-          <Smartphone className="h-5 w-5" />
-        </Button>
-        <Button
-          variant={previewSize === "tablet" ? "default" : "ghost"}
-          size="icon"
-          aria-label="Tablet preview"
-          onClick={() => setPreviewSize("tablet")}
-        >
-          <Tablet className="h-5 w-5" />
-        </Button>
-        <Button
-          variant={previewSize === "desktop" ? "default" : "ghost"}
-          size="icon"
-          aria-label="Desktop preview"
-          onClick={() => setPreviewSize("desktop")}
-        >
-          <Monitor className="h-5 w-5" />
-        </Button>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handlePreview}
-          disabled={isPreviewing || generatedFiles.length === 0}
-        >
-          {isPreviewing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
-          Preview on VM
-        </Button>
+      <div className="flex items-center justify-between p-2 border-b shrink-0">
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={previewSize === "mobile" ? "default" : "ghost"}
+            size="icon"
+            aria-label="Mobile preview"
+            onClick={() => setPreviewSize("mobile")}
+          >
+            <Smartphone className="h-5 w-5" />
+          </Button>
+          <Button
+            variant={previewSize === "tablet" ? "default" : "ghost"}
+            size="icon"
+            aria-label="Tablet preview"
+            onClick={() => setPreviewSize("tablet")}
+          >
+            <Tablet className="h-5 w-5" />
+          </Button>
+          <Button
+            variant={previewSize === "desktop" ? "default" : "ghost"}
+            size="icon"
+            aria-label="Desktop preview"
+            onClick={() => setPreviewSize("desktop")}
+          >
+            <Monitor className="h-5 w-5" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={previewMode === 'sandpack' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={togglePreviewMode}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            {previewMode === 'sandpack' ? 'Switch to VM' : 'Switch to Sandpack'}
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handlePreview}
+            disabled={isPreviewing || generatedFiles.length === 0}
+          >
+            {isPreviewing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
+            Preview on VM
+          </Button>
+        </div>
       </div>
 
       {/* Responsive preview container */}
@@ -338,14 +385,19 @@ export default function LivePreview({
             height: '100%'
           }}
         >
-          {/* Show iframe if previewUrl is set */}
-          {previewUrl ? (
+          {/* Show iframe if previewUrl is set and mode is VM */}
+          {previewMode === 'vm' && previewUrl ? (
             <iframe
               src={previewUrl}
               width="100%"
               height="600"
               style={{ border: 'none' }}
               title="Live Preview"
+              onError={(e) => {
+                console.error('Preview iframe error:', e);
+                setPreviewError('Failed to load preview');
+                setPreviewMode('sandpack');
+              }}
             />
           ) : (
             <ErrorBoundary>

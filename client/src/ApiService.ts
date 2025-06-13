@@ -4,7 +4,9 @@ import { API_URL } from './config/env';
 
 // Create axios instance with default config
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: process.env.NODE_ENV === 'development' 
+    ? "http://localhost:3000" 
+    : "https://zerocode-anmol.vercel.app",
   headers: {
     'Content-Type': 'application/json',
   },
@@ -17,6 +19,10 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    // If this is a preview request, use the VM endpoint
+    if (config.url === '/preview') {
+      config.baseURL = 'http://34.100.168.179';
     }
     return config;
   },
