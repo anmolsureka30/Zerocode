@@ -116,9 +116,9 @@ app.options('*', (req, res) => {
 });
 
 // Add a GET / route for root
-app.get('/', (req, res) => {
-  res.json({ message: 'WDTAFG API Server' });
-});
+      app.get('/', (req, res) => {
+        res.json({ message: 'WDTAFG API Server' });
+      });
 
 // After all middleware and before export default app
 // Ensure all API routes are registered before export

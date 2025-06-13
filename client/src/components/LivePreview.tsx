@@ -17,6 +17,7 @@ import React from "react";
 import { Sandpack } from "@codesandbox/sandpack-react";
 import { githubLight } from "@codesandbox/sandpack-themes";
 import { useToast } from "@/hooks/use-toast";
+import apiClient from '../ApiService';
 
 // Define GeneratedApp type if @shared/schema is not available
 interface GeneratedApp {
@@ -125,6 +126,8 @@ export default function LivePreview({
   const { toast } = useToast();
   const [sandboxError, setSandboxError] = useState<string | null>(null);
   const [isFixing, setIsFixing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   // Convert files for Sandpack
   const files = filesFromFileNodes(generatedFiles);
@@ -212,6 +215,39 @@ export default function LivePreview({
     }
   };
 
+  // Handler to request preview from backend
+  const handlePreview = async () => {
+    setIsPreviewing(true);
+    setPreviewUrl(null);
+    try {
+      // Prepare files object for API
+      const filesObj: Record<string, string> = {};
+      for (const file of generatedFiles) {
+        if (file.type === 'file' && file.content) {
+          filesObj[file.path || file.name] = file.content;
+        }
+      }
+      const response = await apiClient.post('/preview', {
+        files: filesObj,
+        dependencies,
+      });
+      if (response.data && response.data.url) {
+        setPreviewUrl(`http://34.100.168.179${response.data.url}`);
+      } else {
+        throw new Error('No preview URL returned');
+      }
+    } catch (err: any) {
+      setPreviewUrl(null);
+      toast({
+        title: 'Preview Error',
+        description: err.message || 'Failed to generate preview',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
   if (isGenerating) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 bg-gray-50 dark:bg-gray-900">
@@ -280,6 +316,15 @@ export default function LivePreview({
         >
           <Monitor className="h-5 w-5" />
         </Button>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={handlePreview}
+          disabled={isPreviewing || generatedFiles.length === 0}
+        >
+          {isPreviewing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
+          Preview on VM
+        </Button>
       </div>
 
       {/* Responsive preview container */}
@@ -293,37 +338,48 @@ export default function LivePreview({
             height: '100%'
           }}
         >
-          <ErrorBoundary>
-            <div style={{ height: '100%' }}>
-              <Sandpack
-                template="react"
-                files={files}
-                customSetup={{ dependencies }}
-                theme={githubLight}
-                options={{
-                  showNavigator: false,
-                  showTabs: false,
-                  showLineNumbers: false,
-                  showInlineErrors: false,
-                  showConsole: false,
-                  wrapContent: true,
-                  recompileMode: "delayed",
-                  recompileDelay: 500,
-                  externalResources: [
-                    "https://cdn.tailwindcss.com"
-                  ],
-                  layout: "preview",
-                  editorHeight: 0,
-                  classes: {
-                    'sp-wrapper': 'h-full',
-                    'sp-preview-container': 'h-full',
-                    'sp-preview': 'h-full',
-                    'sp-layout': 'h-full',
-                  }
-                }}
-              />
-            </div>
-          </ErrorBoundary>
+          {/* Show iframe if previewUrl is set */}
+          {previewUrl ? (
+            <iframe
+              src={previewUrl}
+              width="100%"
+              height="600"
+              style={{ border: 'none' }}
+              title="Live Preview"
+            />
+          ) : (
+            <ErrorBoundary>
+              <div style={{ height: '100%' }}>
+                <Sandpack
+                  template="react"
+                  files={files}
+                  customSetup={{ dependencies }}
+                  theme={githubLight}
+                  options={{
+                    showNavigator: false,
+                    showTabs: false,
+                    showLineNumbers: false,
+                    showInlineErrors: false,
+                    showConsole: false,
+                    wrapContent: true,
+                    recompileMode: "delayed",
+                    recompileDelay: 500,
+                    externalResources: [
+                      "https://cdn.tailwindcss.com"
+                    ],
+                    layout: "preview",
+                    editorHeight: 0,
+                    classes: {
+                      'sp-wrapper': 'h-full',
+                      'sp-preview-container': 'h-full',
+                      'sp-preview': 'h-full',
+                      'sp-layout': 'h-full',
+                    }
+                  }}
+                />
+              </div>
+            </ErrorBoundary>
+          )}
         </div>
       </div>
     </div>

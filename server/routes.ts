@@ -17,7 +17,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { type FileNode } from "./shared/schema.js";
-
+import axios from 'axios';
 // Polyfill for __dirname and __filename in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -784,6 +784,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     return res.data[0].embedding;
   }
+
+  // Proxy code preview requests to the Google Cloud VM
+  app.post('/api/preview', async (req: Request, res: Response) => {
+    try {
+      const vmUrl = 'http://34.100.168.179/preview';
+      const response = await axios.post(vmUrl, req.body, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
