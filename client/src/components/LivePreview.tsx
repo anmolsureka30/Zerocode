@@ -18,7 +18,6 @@ import { Sandpack } from "@codesandbox/sandpack-react";
 import { githubLight } from "@codesandbox/sandpack-themes";
 import { useToast } from "@/hooks/use-toast";
 import apiClient from '../ApiService';
-import JSZip from 'jszip';
 
 // Define GeneratedApp type if @shared/schema is not available
 interface GeneratedApp {
@@ -114,15 +113,36 @@ function filesFromFileNodes(fileNodes: FileNode[], prefix = ""): Record<string, 
   return files;
 }
 
-// Add this before the LivePreview component
+// Update the loadJSZip function
 const loadJSZip = async () => {
-  try {
-    const zip = new JSZip();
-    return zip;
-  } catch (error) {
-    console.error('Failed to load JSZip:', error);
-    return null;
+  const { toast } = useToast();
+  let retries = 3;
+  
+  while (retries > 0) {
+    try {
+      // Dynamically import JSZip
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      return zip;
+    } catch (error) {
+      console.error(`Failed to load JSZip (attempts left: ${retries - 1}):`, error);
+      retries--;
+      
+      if (retries === 0) {
+        toast({
+          title: 'Error',
+          description: 'Failed to initialize file compression after multiple attempts. Please refresh the page.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
+  
+  return null;
 };
 
 export default function LivePreview({

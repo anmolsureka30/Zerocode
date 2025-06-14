@@ -13,39 +13,15 @@ const __dirname = path.dirname(__filename);
 globalThis.fetch = fetch as any;
 const app = express();
 
-// Get allowed origins from environment variables
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : [
-      'http://localhost:5173',
-      'https://ebfiwb.vercel.app',
-      'https://just0code.com',
-      'https://frontend-three-beta-55.vercel.app',
-      'https://veertesting.vercel.app',
-      'https://veertesting-azjyxijc0-anmol-surekas-projects.vercel.app'
-    ];
-
-// Add development origins in development mode
-if (process.env.NODE_ENV === 'development') {
-  allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:5173');
-}
-
-console.log('🔒 Allowed CORS origins:', allowedOrigins);
-
-// Move CORS middleware to the very top
+// Configure CORS
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) {
-      return callback(null, true);
-    }
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('Not allowed by CORS'), false);
-    }
-    return callback(null, true);
-  },
+  origin: [
+    'https://veertesting.vercel.app',
+    'https://zerocode-anmol.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://veertesting-azjyxijc0-anmol-surekas-projects.vercel.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
